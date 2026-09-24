@@ -1,19 +1,24 @@
 import pytest
 import psycopg
+from testcontainers.postgres import PostgresContainer
 from os import getenv
+from init_db import create_customers_table, create_products_table, create_baskets_table, create_products_baskets_table
 
-TEST_DB = {
-    "host": getenv('DB_HOST'),
-    "port": 5432,
-    "dbname": "ims_test",
-    "user": getenv('USER'),
-    "password": getenv('PASSWORD')
-}
-
+@pytest.fixture(scope="session")
+def postgres_container():
+    with PostgresContainer("postgres:16") as postgres:
+        yield postgres
 
 @pytest.fixture(scope="session")
 def connection():
-    conn = psycopg.connect(**TEST_DB)
+    conn = psycopg.connect(postgres_container.get_connection_url())
+
+    with conn.cursor() as cur:
+        create_customers_table(conn)
+        create_products_table(conn)
+        create_baskets_table(conn)
+        create_products_baskets_table(conn)
+    conn.commit()
   
     yield conn
     conn.close()
