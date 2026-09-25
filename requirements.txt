@@ -1,3 +1,4 @@
 pytest
 psycopg
-testcontainers[postgres]
+testcontainers[postgres]==3.4.2
+sqlalchemy
